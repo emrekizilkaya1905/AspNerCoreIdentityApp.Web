@@ -16,8 +16,9 @@ builder.Services.ConfigureApplicationCookie(opt =>
 {
     var cookiebuilder=new CookieBuilder();
     cookiebuilder.Name = "EmreCookie";
-    opt.LoginPath = new PathString("/Home/Sigin");
+    opt.LoginPath = new PathString("/Home/Signin");
     opt.Cookie=cookiebuilder;
+    opt.LogoutPath = new PathString("/Member/Logout");
     opt.ExpireTimeSpan=TimeSpan.FromDays(60);
     opt.SlidingExpiration = true;
 });
@@ -35,7 +36,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
