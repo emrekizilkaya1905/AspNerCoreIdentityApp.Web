@@ -1,7 +1,31 @@
-﻿
-@{
-    ViewData["Title"] = "Index";
+﻿@{
+	ViewData["Title"] = "Index";
 }
-
-<h1>Hosgeldin @User.Identity!.Name</h1>
-
+@model UserViewModel
+<div class="row"> 
+	<div class="col-md-6 offset-3 text-center">
+		<user-picture-thumbnail picture-url="@Model.PictureUrl" style="300px"></user-picture-thumbnail>
+	</div>
+</div>
+<div class="row">
+	<div class="col-md-6 offset-md-3">
+		<h1>Kullanici Bilgileri</h1>
+		<table class="table">
+			<thead>
+				<tr>
+					<th>Kullanici Adi</th>
+					<th>Email</th>
+					<th>Telefon</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>@Model.Username</td>
+					<td>@Model.Email</td>
+					<td>@Model.Phone</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	
+</div>

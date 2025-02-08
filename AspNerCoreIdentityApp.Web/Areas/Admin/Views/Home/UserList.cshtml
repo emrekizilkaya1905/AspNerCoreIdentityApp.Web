@@ -2,7 +2,7 @@
 @{
     ViewData["Title"] = "UserList";
 }
-@model List<UserViewModel>
+@model List<AdminModel.UserViewModel>
 <h1>UserList</h1>
 
 <table class="table table-striped">
@@ -11,6 +11,8 @@
             <th>Id</th>
             <th>User Name</th>
             <th>Email</th>
+            <th>Rol Islemleri</th>
+            <th>Roller</th>
         </tr>
     </thead>
     <tbody>
@@ -20,6 +22,13 @@
                 <td>@item.Id</td>
                 <td>@item.Name</td>
                 <td>@item.Email</td>
+                <td>
+                    <user-role-names user-id="@item.Id"></user-role-names>
+                </td>
+                <td>
+                    <a asp-controller="Roles" asp-action="AssignRoleToUser"
+                    asp-route-id="@item.Id">Create Role</a>
+                </td>
             </tr>
 
         }
