@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.FileProviders;
+using System.Collections.Generic;
 using System.Runtime.ExceptionServices;
 using System.Security.Claims;
 
@@ -27,14 +28,14 @@ namespace AspNerCoreIdentityApp.Web.Controllers
 		}
 		public async Task<IActionResult> Index()
 		{
-			
+
 			var currentUser = await _userManager.FindByNameAsync(User.Identity!.Name!);
 			var userViewModel = new UserViewModel
 			{
 				Email = currentUser!.Email,
 				Username = currentUser!.UserName,
 				Phone = currentUser!.PhoneNumber,
-				PictureUrl=currentUser!.Picture
+				PictureUrl = currentUser!.Picture
 			};
 			return View(userViewModel);
 		}
@@ -102,32 +103,41 @@ namespace AspNerCoreIdentityApp.Web.Controllers
 				return View();
 			}
 			var currentUser = await _userManager.FindByNameAsync(User.Identity!.Name!);
-			currentUser!.UserName=request.UserName;
-			currentUser.Email=request.Email;
-			currentUser.City=request.City;
-			currentUser.Birthdate=request.Birthdate;
-			currentUser.Gender=request.Gender;
-			currentUser.PhoneNumber=request.Phone;
-			
+			currentUser!.UserName = request.UserName;
+			currentUser.Email = request.Email;
+			currentUser.City = request.City;
+			currentUser.Birthdate = request.Birthdate;
+			currentUser.Gender = request.Gender;
+			currentUser.PhoneNumber = request.Phone;
+
 			if (request.Picture != null && request.Picture.Length > 0)
 			{
 				var wwwrootFolder = _fileProvider.GetDirectoryContents("wwwroot");
-				var randomFile = $"{Guid.NewGuid().ToString()}{Path.GetExtension(request.Picture.FileName)}"; 
+				var randomFile = $"{Guid.NewGuid().ToString()}{Path.GetExtension(request.Picture.FileName)}";
 				var newPicturePath = Path.Combine(wwwrootFolder!.
 				First(x => x.Name == "userpictures").PhysicalPath!, randomFile);
 				using var stream = new FileStream(newPicturePath, FileMode.Create);
 				await request.Picture.CopyToAsync(stream);
 				currentUser.Picture = randomFile;
 			}
-			var updateResult=await _userManager.UpdateAsync(currentUser);
+			var updateResult = await _userManager.UpdateAsync(currentUser);
 			if (!updateResult.Succeeded)
 			{
-				ModelState.AddModelErrorList (updateResult.Errors);
-				return View();	
+				ModelState.AddModelErrorList(updateResult.Errors);
+				return View();
 			}
 			await _userManager.UpdateSecurityStampAsync(currentUser);
 			await _signInManager.SignOutAsync();
-			await _signInManager.SignInAsync(currentUser,true);
+			if (request.Birthdate.HasValue)
+			{
+				await _signInManager.SignInWithClaimsAsync(currentUser, true, new[]
+				{ new Claim("birthdate", currentUser.Birthdate!.Value.ToString()) });
+			}
+			else
+			{
+				await _signInManager.SignInAsync(currentUser, true);
+			}
+
 			TempData["SuccessMessage"] = "Uyelik bilgileriniz basarili bir sekilde degistirilmistir.";
 			var userEditViewModel = new UserEditViewModel()
 			{
@@ -137,7 +147,7 @@ namespace AspNerCoreIdentityApp.Web.Controllers
 				Phone = currentUser.PhoneNumber!,
 				Birthdate = currentUser.Birthdate,
 				Gender = currentUser.Gender!
-				
+
 			};
 			return View(userEditViewModel);
 		}
@@ -145,7 +155,7 @@ namespace AspNerCoreIdentityApp.Web.Controllers
 		{
 			string message = string.Empty;
 			message = "Bu sayfayi görmeye yetkiniz yoktur. Yetki almak icin yöneticiniz ile gorusun";
-			ViewBag.message=message;
+			ViewBag.message = message;
 			return View();
 		}
 		public IActionResult Claims()
@@ -161,7 +171,16 @@ namespace AspNerCoreIdentityApp.Web.Controllers
 		[Authorize(Policy = "AnkaraPolicy")]
 		public IActionResult AnkaraPage()
 		{
-
+			return View();
+		}
+		[Authorize(Policy = "ExchangePolicy")]
+		public IActionResult ExchangePage()
+		{
+			return View();
+		}
+		[Authorize(Policy = "ViolencePolicy")]
+		public IActionResult ViolencePage()
+		{
 			return View();
 		}
 	}

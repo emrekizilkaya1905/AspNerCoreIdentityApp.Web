@@ -59,27 +59,34 @@ namespace AspNerCoreIdentityApp.Web.Controllers
 				ModelState.AddModelError(string.Empty, "Email veya sifre yanlis.");
 				return View();
 			}
-			var singinResult = await _signInManager.PasswordSignInAsync
+
+			var signinResult = await _signInManager.PasswordSignInAsync
 			(hasUser, model.Password, model.RememberMe, true);
 
-			if (singinResult.Succeeded)
-			{
-				return Redirect(returnUrl!);
-			}
-
-			if (singinResult.IsLockedOut)
+			if (signinResult.IsLockedOut)
 			{
 				ModelState.AddModelErrorList(new List<string>()
 				{ "3 dakika boyunca giris yapamazsiniz." });
 				return View();
 			}
-
-			ModelState.AddModelErrorList(new List<string>()
+			if (!signinResult.Succeeded)
+			{
+				ModelState.AddModelErrorList(new List<string>()
 			{ @$"Email veya sifre yanlis.",$"Basarisiz giris sayisi =" +
 			$"{ await _UserManager.GetAccessFailedCountAsync(hasUser)}" });
+				return View();
+			}
+			if (hasUser.Birthdate.HasValue)
+			{
+				await _signInManager.SignInWithClaimsAsync(hasUser, model.RememberMe,
+						new[] { new Claim("birthdate", hasUser.Birthdate.Value.ToString()) });
+
+			}
+			return Redirect(returnUrl!);
 
 
-			return View();
+
+
 		}
 		[HttpPost]
 		public async Task<IActionResult> SignUp(SignUpViewModel request)
